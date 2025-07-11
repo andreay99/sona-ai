@@ -1,14 +1,17 @@
-feature_path,label
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/surprised.npy,surprised
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/surprised.npy,surprised
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/sad.npy,sad
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/joyfully.npy,joyfully
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/joyfully.npy,joyfully
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/euphoric.npy,euphoric
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/sad.npy,sad
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/euphoric.npy,euphoric
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/euphoric.npy,euphoric
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/sad.npy,sad
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/joyfully.npy,joyfully
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/sad.npy,sad
-/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/src/../data/processed/features/surprised.npy,surprised
+filepath,label
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--6499219aea5ed167d5bccf6f/euphoric.wav,euphoric
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64992044d94c0d5726dfffc7/joyfully.wav,joyfully
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991bf2ffab6240f9f2418b/joyfully.mpeg,joyfully
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--6499205bea5ed167d5bc8a8c/surprised.wav,surprised
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991b6eef1fe70609d48edc/surprised.wav,surprised
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991c0dd94c0d5726df032a/joyfully.wav,joyfully
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/audio/joyfully.amr,joyfully
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991c9e7f82d97639452402/euphoric.wav,euphoric
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/audio/euphoric.amr,euphoric
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991b6eef1fe70609d48edc/sad.wav,sad
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--649920f4ffab6240f9f3677a/surprised.wav,surprised
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991c0dd94c0d5726df032a/sad.wav,sad
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--6499261299d64c4c5d32c8e2/euphoric.wav,euphoric
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991c9e7f82d97639452402/sad.wav,sad
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/audio/sad.mpeg,sad
+/Users/drea/Library/Mobile Documents/com~apple~CloudDocs/SONA AI/data/raw/archive/files/00026029e0--64991b907f82d9763944eba2/surprised.wav,surprised

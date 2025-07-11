@@ -1,50 +1,32 @@
-# src/dataset.py
-
 import os
-import numpy as np
 import pandas as pd
-import torch
+import numpy as np
 from torch.utils.data import Dataset
 
 class SERDataset(Dataset):
-    """
-    A PyTorch Dataset for speech emotion recognition features saved as .npy files.
-    Expects a CSV with columns: feature_path,label
-    """
-
-    def __init__(self, csv_path: str, label_map: dict = None):
+    def __init__(self, features_csv: str):
         """
-        csv_path: path to train/val/test CSV (feature_path,label)
-        label_map: optional dict mapping label string -> integer.  
-                   If None, will be built from the CSV.
+        features_csv should be the *_features.csv that your
+        features.py generated (with columns `feature_path,label`).
         """
-        self.df = pd.read_csv(csv_path)
+        self.df = pd.read_csv(features_csv)
+        # detect the columns
+        if 'feature_path' not in self.df.columns or 'label' not in self.df.columns:
+            raise ValueError(f"Expected columns ['feature_path','label'] in {features_csv} but got {self.df.columns.tolist()}")
 
-        # build or validate label→index mapping
-        if label_map is None:
-            labels = sorted(self.df['label'].unique())
-            self.label2idx = {lab: idx for idx, lab in enumerate(labels)}
-        else:
-            self.label2idx = label_map
+        # build a label→index map
+        self.labels = sorted(self.df['label'].unique())
+        self.label2idx = {lab: i for i, lab in enumerate(self.labels)}
 
-        # map string labels to ints
-        self.df['label_idx'] = self.df['label'].map(self.label2idx)
-
-        # sanity check
-        if self.df['label_idx'].isnull().any():
-            missing = set(self.df.loc[self.df['label_idx'].isnull(), 'label'])
-            raise ValueError(f"Found labels not in label_map: {missing}")
+        self.fp_col = 'feature_path'
+        self.lb_col = 'label'
 
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        feat_path = row['feature_path']
-        label_idx = int(row['label_idx'])
-
-        # load the spectrogram (T, n_mels)
-        feat = np.load(feat_path)
-
-        # return (numpy array, int)
-        return feat, label_idx
+        feat = np.load(row[self.fp_col])             # (n_mels, T)
+        label_str = row[self.lb_col]
+        label = self.label2idx[label_str]
+        return feat, label
