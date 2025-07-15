@@ -1,71 +1,66 @@
+# src/train.py
 import os
 import torch
+import torch.nn as nn
+import torch.optim as optim
 from torch.utils.data import DataLoader
-from torch.nn.utils.rnn import pad_sequence
 
+from .config import FEATURES_DIR, BATCH_SIZE, DEVICE, EPOCHS, LEARNING_RATE
 from .dataset import SERDataset
-from .model   import MyModel
-from .config  import FEATURES_DIR, BATCH_SIZE, DEVICE, EPOCHS, LEARNING_RATE
-
-def collate_fn(batch):
-    feats, labels = zip(*batch)
-    # feats: list of np.ndarray shape (n_mels, T_i)
-    tensors = [torch.from_numpy(f.astype('float32')) for f in feats]
-    # pad along time dim to longest in batch → (B, n_mels, T_max)
-    padded = pad_sequence(tensors, batch_first=True)  # (B, T_max, n_mels)
-    # reshape to (B,1,n_mels, T_max) for 2D CNN
-    padded = padded.transpose(1, 2).unsqueeze(1)
-    labels = torch.tensor(labels, dtype=torch.long)
-    return padded.to(DEVICE), labels.to(DEVICE)
+from .model import MyModel
 
 def train():
-    # point at the feature‐list CSVs
+    # --- 1) Paths to your feature‐CSV files
     train_csv = os.path.join(FEATURES_DIR, "train_features.csv")
     val_csv   = os.path.join(FEATURES_DIR, "val_features.csv")
 
+    # --- 2) Build datasets + loaders
     train_ds = SERDataset(train_csv)
     val_ds   = SERDataset(val_csv)
+    train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader   = DataLoader(val_ds, batch_size=BATCH_SIZE)
 
-    # now we know how many classes we have
-    num_classes = len(train_ds.labels)
+    # --- 3) Figure out how many emotions (classes) you have
+    unique_labels = sorted(train_ds.label2idx.keys())
+    num_classes   = len(unique_labels)
 
-    train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,
-                              num_workers=4, collate_fn=collate_fn)
-    val_loader   = DataLoader(val_ds,   batch_size=BATCH_SIZE, shuffle=False,
-                              num_workers=4, collate_fn=collate_fn)
+    # --- 4) Instantiate your model, loss, optimizer
+    model     = MyModel(num_classes=num_classes).to(DEVICE)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    model = MyModel(num_classes=num_classes).to(DEVICE)
-    optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    criterion = torch.nn.CrossEntropyLoss()
-
-    for epoch in range(1, EPOCHS+1):
-        # — training —
+    # --- 5) Training loop
+    for epoch in range(1, EPOCHS + 1):
         model.train()
-        total_loss = 0
-        for X_batch, y_batch in train_loader:
-            optim.zero_grad()
-            logits = model(X_batch)
-            loss = criterion(logits, y_batch)
+        running_loss = 0.0
+        for X, y in train_loader:
+            X, y = X.to(DEVICE), y.to(DEVICE)
+            optimizer.zero_grad()
+            logits = model(X)
+            loss   = criterion(logits, y)
             loss.backward()
-            optim.step()
-            total_loss += loss.item() * X_batch.size(0)
+            optimizer.step()
+            running_loss += loss.item() * X.size(0)
 
-        # — validation —
+        avg_loss = running_loss / len(train_loader.dataset)
+
+        # --- 6) Validation
         model.eval()
-        correct, total = 0, 0
+        correct = 0
         with torch.no_grad():
-            for X_batch, y_batch in val_loader:
-                preds = model(X_batch).argmax(dim=1)
-                correct += (preds == y_batch).sum().item()
-                total   += y_batch.size(0)
+            for X, y in val_loader:
+                X, y = X.to(DEVICE), y.to(DEVICE)
+                preds = model(X).argmax(dim=1)
+                correct += (preds == y).sum().item()
+        val_acc = correct / len(val_loader.dataset)
 
-        print(f"Epoch {epoch}/{EPOCHS} — "
-              f"train_loss: {total_loss/len(train_ds):.4f}  "
-              f"val_acc: {correct/total:.4f}")
+        print(f"Epoch {epoch}/{EPOCHS} — train_loss: {avg_loss:.4f}  val_acc: {val_acc:.4f}")
 
+    # --- 7) Save the trained weights
     os.makedirs("models", exist_ok=True)
-    torch.save(model.state_dict(), "models/ser_cnn.pth")
-    print("✔️  Model saved to models/ser_cnn.pth")
+    save_path = os.path.join("models", "ser_cnn.pth")
+    torch.save(model.state_dict(), save_path)
+    print(f"✔️  Model saved to {save_path}")
 
 if __name__ == "__main__":
     train()

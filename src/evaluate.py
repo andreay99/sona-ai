@@ -1,37 +1,50 @@
-import os
-import numpy as np
+# src/evaluate.py
+import argparse
 import pandas as pd
-from sklearn.metrics import classification_report
-import joblib
+import numpy as np
+import torch
+from sklearn.metrics import classification_report, confusion_matrix
 
-from config import FEATURES_DIR, SPLITS_DIR, MODELS_DIR
-
-def load_split(split: str):
-    csv_path = os.path.join(SPLITS_DIR, f"{split}.csv")
-    df = pd.read_csv(csv_path)
-    if "label" in df.columns:
-        lbl_col = "label"
-    elif "emotion" in df.columns:
-        lbl_col = "emotion"
-    else:
-        raise RuntimeError("CSV must have a 'label' or 'emotion' column")
-    X = np.vstack([
-        np.load(os.path.join(FEATURES_DIR, split, os.path.splitext(row["filename"])[0] + ".npy"))
-        for _, row in df.iterrows()
-    ])
-    y = df[lbl_col].values
-    return X, y
+from src.config import DEVICE
+from src.model import MyModel
 
 def main():
-    data = joblib.load(os.path.join(MODELS_DIR, "logreg.pkl"))
-    scaler, clf = data["scaler"], data["clf"]
+    p = argparse.ArgumentParser(description="Evaluate SER model on a features CSV")
+    p.add_argument("features_csv", help="Path to *_features.csv")
+    p.add_argument("model_path",    help="Path to your .pth checkpoint")
+    args = p.parse_args()
 
-    for split in ["val", "test"]:
-        X, y = load_split(split)
-        Xs = scaler.transform(X)
-        y_pred = clf.predict(Xs)
-        print(f"— {split.upper()} RESULTS —")
-        print(classification_report(y, y_pred, zero_division=0))
+    # 1) load features CSV
+    df = pd.read_csv(args.features_csv)
+    # get sorted list of classes
+    labels = sorted(df.label.unique())
+    label2idx = {l:i for i,l in enumerate(labels)}
+
+    # 2) build & load your model
+    model = MyModel(num_classes=len(labels)).to(DEVICE)
+    model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))
+    model.eval()
+
+    y_true = []
+    y_pred = []
+
+    # 3) for each row, load the mel-spectrogram and predict
+    with torch.no_grad():
+        for _, row in df.iterrows():
+            feat = np.load(row.feature_path)             # (n_mels, T)
+            x = torch.tensor(feat, dtype=torch.float32)  # -> tensor
+            x = x.unsqueeze(0).unsqueeze(0).to(DEVICE)   # (1,1,n_mels,T)
+            logits = model(x)
+            pred = logits.argmax(dim=1).item()
+
+            y_true.append(label2idx[row.label])
+            y_pred.append(pred)
+
+    # 4) print metrics
+    print("\nClassification Report:\n")
+    print(classification_report(y_true, y_pred, target_names=labels))
+    print("Confusion Matrix:\n")
+    print(confusion_matrix(y_true, y_pred))
 
 if __name__ == "__main__":
     main()
